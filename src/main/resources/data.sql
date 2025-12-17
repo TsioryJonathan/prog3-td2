@@ -11,3 +11,7 @@ INSERT INTO "Ingredient" (id, name, price, category, id_dish) VALUES
 (3, 'Poulet', 4500.00, 'ANIMAL', 2),
 (4, 'Chocolat', 3000.00, 'OTHER', 4),
 (5, 'Beurre', 2500.00, 'DAIRY', 4);
+
+-- Update nextval sequences for Dish and Ingredient tables
+SELECT setval('"Dish_id_seq"', (SELECT MAX(id) FROM "Dish"));
+SELECT setval('"Ingredient_id_seq"', (SELECT MAX(id) FROM "Ingredient"));
