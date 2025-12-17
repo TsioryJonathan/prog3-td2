@@ -15,6 +15,8 @@ public class Dish {
         this.dishType = dishType;
         this.ingredient = ingredient;
     }
+    public Dish() {
+    }
 
     public int getId() {
         return id;

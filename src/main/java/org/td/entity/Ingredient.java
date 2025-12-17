@@ -16,6 +16,12 @@ public class Ingredient {
         this.category = category;
         this.dish = dish;
     }
+    public Ingredient(int id, String name, double price, CategoryEnum category) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.category = category;
+    }
 
     public int getId() {
         return id;
@@ -76,7 +82,6 @@ public class Ingredient {
                 ", name='" + name + '\'' +
                 ", price=" + price +
                 ", category=" + category +
-                ", dish=" + dish +
                 '}';
     }
 
