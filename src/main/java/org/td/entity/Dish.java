@@ -16,6 +16,11 @@ public class Dish {
         this.dishType = dishType;
         this.ingredient = ingredient;
     }
+    public Dish(int id, String name, DishTypeEnum dishType) {
+        this.id = id;
+        this.name = name;
+        this.dishType = dishType;
+    }
     public Dish() {
     }
 
@@ -72,7 +77,7 @@ public class Dish {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", dishType=" + dishType +
-                ", ingredient=" + ingredient +
+                (!ingredient.isEmpty() ? ", ingredient=" + ingredient.toString() : "") +
                 '}';
     }
 

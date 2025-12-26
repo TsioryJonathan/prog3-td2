@@ -2,6 +2,7 @@ package org.td.service;
 
 import org.td.config.DBConnection;
 import org.td.entity.Dish;
+import org.td.entity.DishTypeEnum;
 import org.td.util.Util;
 import org.td.util.Util.*;
 import org.td.entity.Ingredient;
@@ -99,19 +100,19 @@ public class DataRetriever {
     }
 
     /* Return a list of every ingredients id */
-    public List<Integer> getIngredientIds(){
-        List<Integer> ids = new ArrayList<>();
+    public List<String> getIngredientsName(){
+        List<String> ids = new ArrayList<>();
         StringBuilder ingredientSql = new StringBuilder();
         ingredientSql.append(
                 """
-                SELECT id from "Ingredient"
+                SELECT name from "Ingredient"
                 """);
         try{
             Connection dbCon = dbConnection.getConnection();
             PreparedStatement ingredientStmt = dbCon.prepareStatement(ingredientSql.toString());
             ResultSet ingredientRs = ingredientStmt.executeQuery();
             while(ingredientRs.next()){
-                ids.add(ingredientRs.getInt("id"));
+                ids.add(ingredientRs.getString("name"));
             }
 
             dbConnection.closeConnection(dbCon);
@@ -125,21 +126,21 @@ public class DataRetriever {
         StringBuilder ingredientSql = new StringBuilder();
         ingredientSql.append(
                 """
-                INSERT INTO "Ingredient"(id, name, price, category, id_dish) VALUES (?, ?, ?, ?::ingredient_category_enum,?)
+                INSERT INTO "Ingredient"(name, price, category, id_dish) VALUES (?, ?, ?::ingredient_category_enum,?)
                 """
         );
         if (newIngredients.size() > 1){
             ingredientSql.append(
                     """
-                    ,(?,?,?,?::ingredient_category_enum,?)
+                    ,(?,?,?::ingredient_category_enum,?)
                     """.repeat(newIngredients.size() - 1)
             );
         }
         try{
             /* check if an ingredient already exists */
-            List<Integer> ingIds = this.getIngredientIds();
+            List<String> ingNames = this.getIngredientsName();
             for(Ingredient ing : newIngredients){
-                if (ingIds.contains(ing.getId())){
+                if (ingNames.contains(ing.getName())){
                     throw new RuntimeException("Ingredient already exists");
                 }
             }
@@ -148,8 +149,6 @@ public class DataRetriever {
             int i = 1;
             PreparedStatement ingredientStmt = dbCon.prepareStatement(ingredientSql.toString());
             for(Ingredient ing : newIngredients){
-                ingredientStmt.setInt(i , ing.getId());
-                i++;
                 ingredientStmt.setString(i , ing.getName());
                 i++;
                 ingredientStmt.setDouble(i , ing.getPrice());
@@ -162,6 +161,65 @@ public class DataRetriever {
             ingredientStmt.executeUpdate();
             dbConnection.closeConnection(dbCon);
             return newIngredients;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Dish saveDish(Dish dishToSave){
+        Connection con = null;
+        /* With ID */
+        if( dishToSave.getId() != 0){
+            //Check if dish dont exist
+        StringBuilder sql = new StringBuilder();
+        sql.append("""
+                   SELECT id FROM "Dish" WHERE id = ?
+                   """);
+        try{
+            con = dbConnection.getConnection();
+            PreparedStatement dishStmt = con.prepareStatement(sql.toString());
+            dishStmt.setInt(1, dishToSave.getId());
+            ResultSet dishRs = dishStmt.executeQuery();
+            if(!dishRs.next()){
+                StringBuilder dishSql = new StringBuilder();
+                dishSql.append("""
+                        INSERT INTO "Dish" (id, name, dish_type) VALUES (?,?,?::dish_type_enum)
+                        """);
+                PreparedStatement dishStmt1 = con.prepareStatement(dishSql.toString());
+                dishStmt1.setInt(1, dishToSave.getId());
+                dishStmt1.setString(2, dishToSave.getName());
+                dishStmt1.setString(3, String.valueOf(DishTypeEnum.valueOf(dishToSave.getDishType().toString())));
+            }
+            return new Dish();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }}
+        else{
+            return new Dish();
+        }
+    }
+
+    public List<Dish> findDishsByIngredientName(String ingredientName){
+        Connection con = null;
+        try{
+            con = dbConnection.getConnection();
+            StringBuilder dishSql = new StringBuilder();
+            List<Dish> dishs = new ArrayList<>();
+            dishSql.append("""
+                    SELECT d.id, d.name, dish_type FROM "Dish" d JOIN "Ingredient" i ON d.id = i.id_dish WHERE i.name LIKE ?\s
+                   \s""");
+            PreparedStatement dishStmt = con.prepareStatement(dishSql.toString());
+            dishStmt.setString(1, "%" + ingredientName + "%");
+            ResultSet dishRs = dishStmt.executeQuery();
+            while(dishRs.next()){
+                dishs.add(new Dish(
+                        dishRs.getInt("id"),
+                        dishRs.getString("name"),
+                        DishTypeEnum.valueOf(dishRs.getString("dish_type")))
+                );
+            }
+            return dishs;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

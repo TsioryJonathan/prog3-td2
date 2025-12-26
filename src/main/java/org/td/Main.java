@@ -17,9 +17,11 @@ public class Main {
          //       new Ingredient(1, "choco", 20.00D, CategoryEnum.ANIMAL)
           //      ,new Ingredient(1, "choco", 20.00D, CategoryEnum.ANIMAL)
         //)));
-        System.out.println(dataRetriever.createIngredients(List.of(
-                new Ingredient(2, "chocoBANANA", 20.00D, CategoryEnum.ANIMAL)
-                ,new Ingredient(2, "chocoMelon", 20.00D, CategoryEnum.ANIMAL)
-        )));
+       // System.out.println(dataRetriever.createIngredients(List.of(
+       //         new Ingredient( "chocoBANANA", 20.00D, CategoryEnum.ANIMAL)
+      //          ,new Ingredient("chocoMelon2", 20.00D, CategoryEnum.ANIMAL)
+       // )));
+
+        System.out.println(dataRetriever.findDishsByIngredientName("eur"));
     }
 }

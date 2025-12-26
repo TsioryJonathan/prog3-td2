@@ -22,6 +22,11 @@ public class Ingredient {
         this.price = price;
         this.category = category;
     }
+    public Ingredient( String name, double price, CategoryEnum category) {
+        this.name = name;
+        this.price = price;
+        this.category = category;
+    }
 
     public int getId() {
         return id;
