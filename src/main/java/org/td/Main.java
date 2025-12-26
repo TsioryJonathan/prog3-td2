@@ -9,6 +9,6 @@ public class Main {
     public static void main(String[] args) throws SQLException {
         DataRetriever dataRetriever= new DataRetriever();
         System.out.println(dataRetriever.findDishById(1));
-
+        System.out.println(dataRetriever.findingIngredients(1 , 10));
     }
 }

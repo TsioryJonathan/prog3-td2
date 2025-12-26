@@ -22,7 +22,7 @@ public class DBConnection {
         try{
             return DriverManager.getConnection(url, username, password);
         } catch (SQLException e) {
-            throw new SQLException(e);
+            throw new RuntimeException(e);
         }
     }
 

@@ -18,15 +18,12 @@ public class DataRetriever {
     private final Connection dbConnection = new DBConnection().getConnection();
     public DataRetriever() throws SQLException {
     }
-    public Dish findDishById(int id) throws SQLException {
-        StringBuilder dishSql = new StringBuilder();
+    public Dish findDishById(int id) {
         StringBuilder ingredientSql = new StringBuilder();
-        dishSql.append(
-                """
+        String dishSql = """
                 SELECT d.id, d.name, d.dish_type from "Dish" d
                 WHERE d.id = ?
-                """
-        );
+                """;
         ingredientSql.append(
                 """
                 SELECT i.id, i.name,i.price, i.category from "Ingredient" i
@@ -35,7 +32,7 @@ public class DataRetriever {
                 """
         );
 
-        try(PreparedStatement dishStmt = dbConnection.prepareStatement(dishSql.toString())){
+        try(PreparedStatement dishStmt = dbConnection.prepareStatement(dishSql)){
             dishStmt.setInt(1, id);
             ResultSet dishRs = dishStmt.executeQuery();
             Dish dish = new Dish();
@@ -56,16 +53,41 @@ public class DataRetriever {
                             util.getCategoryType(ingredientRs.getString("category"))
                     ));
                 }
+
                 dish.setIngredient(ingredients);
             } catch (SQLException e) {
                 throw new SQLException(e);
             }
-            ingredients.forEach(ingredient -> {ingredient.setDish(dish);});
             return dish;
         } catch (SQLException e){
-            throw new SQLException(e);
+            throw new RuntimeException(e);
         }
 
 
+    }
+
+    public List<Ingredient> findingIngredients(int page, int size){
+        String ingredientSql = """
+                SELECT i.id, i.name,i.price, i.category from "Ingredient" i
+                ORDER BY i.id
+                LIMIT ? OFFSET ?
+                """;
+        List<Ingredient> ingredients = new ArrayList<>();
+        try(PreparedStatement ingredientStmt = dbConnection.prepareStatement(ingredientSql)){
+            ingredientStmt.setInt(1, size);
+            ingredientStmt.setInt(2, (page - 1) * size);
+            ResultSet ingredientRs = ingredientStmt.executeQuery();
+            while(ingredientRs.next()){
+                ingredients.add(new Ingredient(
+                        ingredientRs.getInt("id"),
+                        ingredientRs.getString("name"),
+                        ingredientRs.getDouble("price"),
+                        util.getCategoryType(ingredientRs.getString("category"))
+                ));
+            }
+            return ingredients;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

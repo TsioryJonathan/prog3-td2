@@ -1,5 +1,6 @@
 package org.td.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -7,7 +8,7 @@ public class Dish {
     private int id;
     private String name;
     private DishTypeEnum dishType;
-    private List<Ingredient> ingredient;
+    private List<Ingredient> ingredient = new ArrayList<>();
 
     public Dish(int id, String name, DishTypeEnum dishType, List<Ingredient> ingredient) {
         this.id = id;
@@ -47,7 +48,10 @@ public class Dish {
     }
 
     public void setIngredient(List<Ingredient> ingredient) {
-        this.ingredient = ingredient;
+        for (Ingredient ing: ingredient){
+            ing.setDish(this);
+            this.ingredient.add(ing);
+        }
     }
 
     @Override
