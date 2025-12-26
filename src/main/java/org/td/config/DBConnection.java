@@ -26,4 +26,12 @@ public class DBConnection {
         }
     }
 
+    public void closeConnection(Connection connection) throws SQLException {
+        try{
+            connection.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
