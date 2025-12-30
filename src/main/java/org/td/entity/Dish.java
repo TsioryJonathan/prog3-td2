@@ -74,10 +74,10 @@ public class Dish {
     @Override
     public String toString() {
         return "Dish{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", dishType=" + dishType +
-                (!ingredient.isEmpty() ? ", ingredient=" + ingredient.toString() : "") +
+                "\nId=" + id +
+                "\nName='" + name + '\'' +
+                "\nDishType=" + dishType +
+                (!ingredient.isEmpty() ? "\n\t" + ingredient.toString() : "\n") +
                 '}';
     }
 

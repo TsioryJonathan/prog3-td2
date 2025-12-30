@@ -2,6 +2,12 @@ package org.td.util;
 
 import org.td.entity.CategoryEnum;
 import org.td.entity.DishTypeEnum;
+import org.td.entity.Ingredient;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Util {
     public DishTypeEnum getDishType(String dishType) {
@@ -22,5 +28,18 @@ public class Util {
             case "OTHER" -> CategoryEnum.OTHER;
             default -> null;
         };
+    }
+
+    public List<Ingredient> mapResultSetToIngredientList(ResultSet rs) throws SQLException {
+        List<Ingredient> ingredientList = new ArrayList<>();
+        while(rs.next()) {
+            ingredientList.add(new Ingredient(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getDouble("price"),
+                    CategoryEnum.valueOf(rs.getString("category"))
+            ));
+        }
+        return ingredientList;
     }
 }

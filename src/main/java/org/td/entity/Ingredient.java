@@ -82,12 +82,12 @@ public class Ingredient {
 
     @Override
     public String toString() {
-        return "Ingredient{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", price=" + price +
-                ", category=" + category +
-                (this.dish != null ? ", dish name=" + dish.getName() : "") +
+        return "\n\tIngredient{" +
+                "\n\tId=" + id +
+                "\n\tName='" + name + '\'' +
+                "\n\tPrice=" + price +
+                "\n\tCategory=" + category +
+                (this.dish != null ? "\n\tDish name=" + dish.getName() : "\n") +
                 '}';
     }
 
