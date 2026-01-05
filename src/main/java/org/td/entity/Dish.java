@@ -53,11 +53,13 @@ public class Dish {
     }
 
     public void setIngredient(List<Ingredient> ingredient) {
-        for (Ingredient ing: ingredient){
+        this.ingredient.clear();
+        for (Ingredient ing : ingredient) {
             ing.setDish(this);
             this.ingredient.add(ing);
         }
     }
+
 
     @Override
     public boolean equals(Object o) {
