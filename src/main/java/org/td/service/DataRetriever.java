@@ -30,7 +30,7 @@ public class DataRetriever {
         ResultSet ingredientRs = null;
 
         String dishSql = """
-                SELECT id, name, dish_type
+                SELECT id, name, dish_type,price
                 FROM "Dish"
                 WHERE id = ?
                 """;
@@ -56,7 +56,13 @@ public class DataRetriever {
             dish.setId(dishRs.getInt("id"));
             dish.setName(dishRs.getString("name"));
             dish.setDishType(util.getDishType(dishRs.getString("dish_type")));
+            double price = dishRs.getDouble("price");
 
+            if (dishRs.wasNull()) {
+                dish.setPrice(null);
+            } else {
+                dish.setPrice(price);
+            }
             ingredientStmt = con.prepareStatement(ingredientSql);
             ingredientStmt.setInt(1, id);
             ingredientRs = ingredientStmt.executeQuery();
@@ -86,7 +92,6 @@ public class DataRetriever {
             } catch (SQLException ignored) {}
         }
     }
-
 
     public List<Ingredient> findIngredients(int page, int size) {
         Connection con = null;
@@ -248,14 +253,14 @@ public class DataRetriever {
             """;
 
         String insertDishSql = """
-            INSERT INTO "Dish"(name, dish_type)
-            VALUES (?, ?::dish_type_enum)
+            INSERT INTO "Dish"(name, dish_type,price)
+            VALUES (?, ?::dish_type_enum,?)
             RETURNING id
             """;
 
         String updateDishSql = """
             UPDATE "Dish"
-            SET name = ?, dish_type = ?::dish_type_enum
+            SET name = ?, dish_type = ?::dish_type_enum, price = ?
             WHERE id = ?
             """;
 
@@ -287,6 +292,7 @@ public class DataRetriever {
                 stmt = con.prepareStatement(insertDishSql);
                 stmt.setString(1, dishToSave.getName());
                 stmt.setString(2, dishToSave.getDishType().toString());
+                stmt.setObject(3 , dishToSave.getPrice());
 
                 rs = stmt.executeQuery();
                 if (rs.next()) {
@@ -299,7 +305,8 @@ public class DataRetriever {
                 stmt = con.prepareStatement(updateDishSql);
                 stmt.setString(1, dishToSave.getName());
                 stmt.setString(2, dishToSave.getDishType().toString());
-                stmt.setInt(3, dishToSave.getId());
+                stmt.setDouble(3, dishToSave.getPrice());
+                stmt.setInt(4, dishToSave.getId());
                 stmt.executeUpdate();
                 stmt.close();
             }

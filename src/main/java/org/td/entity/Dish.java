@@ -9,7 +9,15 @@ public class Dish {
     private String name;
     private DishTypeEnum dishType;
     private List<Ingredient> ingredient = new ArrayList<>();
+    private Double price;
 
+    public Dish(int id, String name, DishTypeEnum dishType, List<Ingredient> ingredient, double price) {
+        this.id = id;
+        this.name = name;
+        this.dishType = dishType;
+        this.ingredient = ingredient;
+        this.price = price;
+    }
     public Dish(int id, String name, DishTypeEnum dishType, List<Ingredient> ingredient) {
         this.id = id;
         this.name = name;
@@ -44,6 +52,14 @@ public class Dish {
         return dishType;
     }
 
+    public Double getPrice(){
+        return price;
+    }
+
+    public void setPrice(Double price){
+        this.price = price;
+    }
+
     public void setDishType(DishTypeEnum dishType) {
         this.dishType = dishType;
     }
@@ -52,12 +68,27 @@ public class Dish {
         return ingredient;
     }
 
+    public Double getDishCost() {
+        double total = 0.0;
+        for (Ingredient ing : ingredient) {
+            total += ing.getPrice();
+        }
+        return total;
+    }
+
     public void setIngredient(List<Ingredient> ingredient) {
         this.ingredient.clear();
         for (Ingredient ing : ingredient) {
             ing.setDish(this);
             this.ingredient.add(ing);
         }
+    }
+
+    public Double getGrossMargin(){
+        if(this.getPrice() == null){
+            throw new RuntimeException("Impossible to calculate gross margin: Dish price is null");
+        }
+        return this.getPrice() - this.getDishCost();
     }
 
 
