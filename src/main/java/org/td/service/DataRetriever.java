@@ -57,7 +57,6 @@ public class DataRetriever {
             dish.setName(dishRs.getString("name"));
             dish.setDishType(util.getDishType(dishRs.getString("dish_type")));
             double price = dishRs.getDouble("price");
-
             if (dishRs.wasNull()) {
                 dish.setPrice(null);
             } else {
@@ -305,7 +304,7 @@ public class DataRetriever {
                 stmt = con.prepareStatement(updateDishSql);
                 stmt.setString(1, dishToSave.getName());
                 stmt.setString(2, dishToSave.getDishType().toString());
-                stmt.setDouble(3, dishToSave.getPrice());
+                stmt.setObject(3, dishToSave.getPrice());
                 stmt.setInt(4, dishToSave.getId());
                 stmt.executeUpdate();
                 stmt.close();
@@ -347,8 +346,6 @@ public class DataRetriever {
         }
     }
 
-
-
     public List<Ingredient> getIngredientsOfADish(int dishId) {
         Connection con = null;
         PreparedStatement stmt = null;
@@ -385,7 +382,7 @@ public class DataRetriever {
         ResultSet rs = null;
 
         String sql = """
-                SELECT DISTINCT d.id, d.name, d.dish_type
+                SELECT DISTINCT d.id, d.name, d.dish_type,d.price
                 FROM "Dish" d
                 JOIN "Ingredient" i ON d.id = i.id_dish
                 WHERE i.name ILIKE ?
@@ -404,6 +401,12 @@ public class DataRetriever {
                 dish.setId(rs.getInt("id"));
                 dish.setName(rs.getString("name"));
                 dish.setDishType(DishTypeEnum.valueOf(rs.getString("dish_type")));
+                Double price = rs.getDouble("price");
+                if(rs.wasNull()){
+                    dish.setPrice(null);
+                }else{
+                    dish.setPrice(price);
+                }
                 dish.setIngredient(getIngredientsOfADish(dish.getId()));
                 dishes.add(dish);
             }
@@ -420,7 +423,6 @@ public class DataRetriever {
             } catch (SQLException ignored) {}
         }
     }
-
 
     public List<Ingredient> findIngredientByCriteria(
             String ingredientName,

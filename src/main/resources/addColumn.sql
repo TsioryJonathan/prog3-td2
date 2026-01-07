@@ -1,5 +1,5 @@
-alter table "Dish"
-add column price numeric(10,2);
+ALTER TABLE "Dish"
+ADD COLUMN IF NOT EXISTS price numeric(10,2);
 
 update "Dish"
 set price = 2000.00

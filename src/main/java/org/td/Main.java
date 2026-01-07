@@ -133,6 +133,12 @@ public class Main {
         Dish dish3 = dr.findDishById(3);
         System.out.println("Dish: " + dish3.getGrossMargin());
 
+        dish1.setPrice(2500.0);
+        dr.saveDish(dish1);
+
+        Dish saladeUpdated = dr.findDishById(dish1.getId());
+        System.out.println("Nouveau prix : " + saladeUpdated.getPrice());
+        System.out.println("Gross Margin : " + saladeUpdated.getGrossMargin());
 
     }
 }
