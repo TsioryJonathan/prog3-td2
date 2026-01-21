@@ -180,7 +180,7 @@ public class DataRetriever {
         try (PreparedStatement ps = conn.prepareStatement(attachSql)) {
             for(DishIngredient dishIngredient : dishIngredients) {
                 ps.setInt(1, dishIngredient.getId());
-                ps.setInt(2, dishIngredient.getId());
+                ps.setInt(2, dishIngredient.getId_ingredient());
                 ps.setDouble(3, dishIngredient.getQuantity_required());
                 ps.setString(4, dishIngredient.getUnit().name());
 
