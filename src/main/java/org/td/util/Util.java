@@ -36,8 +36,8 @@ public class Util {
             ingredientList.add(new Ingredient(
                     rs.getInt("id"),
                     rs.getString("name"),
-                    rs.getDouble("price"),
-                    CategoryEnum.valueOf(rs.getString("category"))
+                    CategoryEnum.valueOf(rs.getString("category")),
+                    rs.getDouble("price")
             ));
         }
         return ingredientList;
