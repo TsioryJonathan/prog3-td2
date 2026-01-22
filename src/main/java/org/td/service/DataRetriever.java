@@ -4,6 +4,7 @@ import org.td.config.DBConnection;
 import org.td.entity.*;
 
 import java.sql.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -262,8 +263,8 @@ public class DataRetriever {
 
         try (PreparedStatement ps = conn.prepareStatement(attachSql)) {
             for(DishIngredient dishIngredient : dishIngredients) {
-                ps.setInt(1, dishIngredient.getId());
-                ps.setInt(2, dishIngredient.getId_ingredient());
+                ps.setInt(1, dishIngredient.getDish().getId());
+                ps.setInt(2, dishIngredient.getIngredient().getId());
                 ps.setDouble(3, dishIngredient.getQuantity_required());
                 ps.setString(4, dishIngredient.getUnit().name());
 
@@ -310,8 +311,8 @@ public class DataRetriever {
         try{
             connection.setAutoCommit(false);
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, dishIngredient.getId_dish());
-            preparedStatement.setInt(2, dishIngredient.getId_ingredient());
+            preparedStatement.setInt(1, dishIngredient.getDish().getId());
+            preparedStatement.setInt(2, dishIngredient.getIngredient().getId());
             preparedStatement.setDouble(3, dishIngredient.getQuantity_required());
             preparedStatement.setObject(4, dishIngredient.getUnit());
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -340,8 +341,8 @@ public class DataRetriever {
                 DishIngredient dishIng = new DishIngredient();
                 Ingredient ing = new Ingredient();
                         dishIng.setId(resultSet.getInt(1));
-                        dishIng.setId_dish(resultSet.getInt("id_dish"));
-                        dishIng.setId_ingredient(resultSet.getInt("id_ingredient"));
+                        dishIng.setDish(findDishById(resultSet.getInt("id_dish")));
+                        dishIng.setIngredient(findIngredientById(resultSet.getInt("id_ingredient")));
                         dishIng.setQuantity_required(resultSet.getDouble("quantity_required"));
                         dishIng.setUnit(UnitType.valueOf(resultSet.getString("unit")));
 
@@ -360,6 +361,32 @@ public class DataRetriever {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /* Order operations */
+    private Order saveOrder(Order orderToSave){
+        /*check if stock ingredient is sufficient */
+        for(DishOrder dishOrder: orderToSave.getDishOrders()){
+            for (DishIngredient dishIng: dishOrder.getDish().getDishIngredientList()){
+                double requiredQuantity = dishIng.getQuantity_required() * dishOrder.getQuantity();
+                Ingredient ingredient = findIngredientById(dishIng.getIngredient().getId());
+                double availableQuantity = ingredient.getStockValueAt(Instant.now()).getQuantity();
+
+                if(availableQuantity < requiredQuantity){
+                    throw new RuntimeException("Insufficient stock for ingredient: " + ingredient.getName());
+            }
+            }
+        }
+
+        String sql = """
+                insert into "Order" (id, creation_datetime, total_price)
+                values (?, ?, ?)
+                on conflict (id) do update
+                set creation_datetime = EXCLUDED.creation_datetime,
+                    total_price = EXCLUDED.total_price
+                returning id
+                """;
+
     }
 
     private String getSerialSequenceName(Connection conn, String tableName, String columnName)
