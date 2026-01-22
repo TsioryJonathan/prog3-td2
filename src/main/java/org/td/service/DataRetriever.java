@@ -28,8 +28,7 @@ public class DataRetriever {
                 dish.setDishType(DishTypeEnum.valueOf(resultSet.getString("dish_type")));
                 dish.setPrice(resultSet.getObject("dish_price") == null
                         ? null : resultSet.getDouble("dish_price"));
-                dish.setIngredients(findIngredientByDishId(id));
-                dish.setDishIngredientList(getLinkedDishIngredients(resultSet.getInt("dish_id")));
+                dish.setDishIngredientList(findDishIngredientById(resultSet.getInt("dish_id")));
 
                 return dish;
             }
@@ -73,7 +72,7 @@ public class DataRetriever {
                 }
             }
 
-            List<Ingredient> newIngredients = toSave.getIngredients();
+            List<Ingredient> newIngredients = toSave.getDishIngredientList().stream().map(DishIngredient::getIngredient).toList();
 
             detachIngredients(conn, dishId, newIngredients);
             attachIngredients(conn, dishId, toSave.getDishIngredientList());
@@ -238,25 +237,37 @@ public class DataRetriever {
         }
     };
 
-    private List<DishIngredient> getLinkedDishIngredients(Integer idDish) {
+    private List<DishIngredient> findDishIngredientById(Integer idDish) {
         DBConnection dbConnection = new DBConnection();
         Connection connection = dbConnection.getConnection();
         List<DishIngredient> dishIngredients = new ArrayList<>();
         String sql = """
-                select id , id_dish,id_ingredient, quantity_required, unit from dishingredient where id_dish = ?;
+                select d.id , id_dish,id_ingredient, quantity_required, unit, i.id as ing_id , i.name as ing_name, i.price as ing_price, i.category as ing_category
+                from dishingredient d join ingredient i
+                on d.id_ingredient = i.id
+                where id_dish = ?
+               ;
                 """;
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             connection.setAutoCommit(false);
             preparedStatement.setInt(1, idDish);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                dishIngredients.add(new DishIngredient(
-                        resultSet.getInt(1),
-                        resultSet.getInt("id_dish"),
-                        resultSet.getInt("id_ingredient"),
-                        resultSet.getDouble("quantity_required"),
-                        UnitType.valueOf(resultSet.getString("unit"))
-                ));
+                DishIngredient dishIng = new DishIngredient();
+                Ingredient ing = new Ingredient();
+                        dishIng.setId(resultSet.getInt(1));
+                        dishIng.setId_dish(resultSet.getInt("id_dish"));
+                        dishIng.setId_ingredient(resultSet.getInt("id_ingredient"));
+                        dishIng.setQuantity_required(resultSet.getDouble("quantity_required"));
+                        dishIng.setUnit(UnitType.valueOf(resultSet.getString("unit")));
+
+                        ing.setId(resultSet.getInt("ing_id"));
+                        ing.setName(resultSet.getString("ing_name"));
+                        ing.setPrice(resultSet.getDouble("ing_price"));
+                        ing.setCategory(CategoryEnum.valueOf(resultSet.getString("ing_category")));
+                        dishIng.setIngredient(ing);
+                        dishIngredients.add(dishIng);
+
             }
             connection.commit();
             dbConnection.closeConnection(connection);

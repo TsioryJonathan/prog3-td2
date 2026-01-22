@@ -139,7 +139,7 @@ public class Main {
 //        Dish saladeUpdated = dr.findDishById(dish1.getId());
 //        System.out.println("Nouveau prix : " + saladeUpdated.getPrice());
 //        System.out.println("Gross Margin : " + saladeUpdated.getGrossMargin())
-Dish dish = dr.findDishById(2);
+Dish dish = dr.findDishById(1);
         System.out.println(dish.getGrossMargin());
 
     }

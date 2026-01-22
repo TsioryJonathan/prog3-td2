@@ -8,8 +8,27 @@ public class DishIngredient {
     private int id_ingredient;
     private double quantity_required;
     private UnitType unit;
+    private Ingredient ingredient;
+    public DishIngredient() {
 
-    public DishIngredient(int id, int idDish, int idIngredient, double quantityRequired, UnitType unit) {
+    }
+
+    public DishIngredient(int id, int idDish, int idIngredient, double quantityRequired, UnitType unit, Ingredient ingredient) {
+        this.id = id;
+        id_dish = idDish;
+        id_ingredient = idIngredient;
+        quantity_required = quantityRequired;
+        this.unit = unit;
+        this.ingredient = ingredient;
+    }
+    public DishIngredient( int idDish, int idIngredient, double quantityRequired, UnitType unit, Ingredient ingredient) {
+        id_dish = idDish;
+        id_ingredient = idIngredient;
+        quantity_required = quantityRequired;
+        this.unit = unit;
+        this.ingredient = ingredient;
+    }
+    public DishIngredient( int id,int idDish, int idIngredient, double quantityRequired, UnitType unit) {
         this.id = id;
         id_dish = idDish;
         id_ingredient = idIngredient;
@@ -63,6 +82,18 @@ public class DishIngredient {
         this.unit = unit;
     }
 
+    public Ingredient getIngredient() {
+        return ingredient;
+    }
+
+    public void setIngredient(Ingredient ingredient) {
+        this.ingredient = ingredient;
+    }
+
+    public double getIngredientCost(){
+        if(ingredient.getPrice() == null) throw new RuntimeException("ingredient price is null");
+        return ingredient.getPrice() * getQuantity_required();
+    }
     @Override
     public String toString() {
         return "DishIngredient{" +
