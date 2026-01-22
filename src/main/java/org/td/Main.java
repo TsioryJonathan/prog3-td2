@@ -1,14 +1,13 @@
 package org.td;
 
-import org.td.service.DataRetriever;
-import org.td.entity.CategoryEnum;
-import org.td.entity.Dish;
-import org.td.entity.DishTypeEnum;
 import org.td.entity.Ingredient;
+import org.td.service.DataRetriever;
+import org.td.entity.Dish;
+
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
+
 
 public class Main {
 
@@ -139,8 +138,16 @@ public class Main {
 //        Dish saladeUpdated = dr.findDishById(dish1.getId());
 //        System.out.println("Nouveau prix : " + saladeUpdated.getPrice());
 //        System.out.println("Gross Margin : " + saladeUpdated.getGrossMargin())
-Dish dish = dr.findDishById(1);
-        System.out.println(dish.getGrossMargin());
-
+    Ingredient ing1 = dr.findIngredientById(1);
+    Ingredient ing2 = dr.findIngredientById(2);
+    Ingredient ing3 = dr.findIngredientById(3);
+    Ingredient ing4 = dr.findIngredientById(4);
+    Ingredient ing5 = dr.findIngredientById(5);
+    Instant t = Instant.parse("2024-01-06T12:00:00Z");
+        System.out.println(ing1.getStockValueAt(t));
+        System.out.println(ing2.getStockValueAt(t));
+        System.out.println(ing3.getStockValueAt(t));
+        System.out.println(ing4.getStockValueAt(t));
+        System.out.println(ing5.getStockValueAt(t));
     }
 }

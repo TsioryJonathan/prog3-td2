@@ -2,6 +2,8 @@ package org.td.entity;
 
 import org.td.entity.Dish;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 
 public class Ingredient {
@@ -9,6 +11,15 @@ public class Ingredient {
     private String name;
     private CategoryEnum category;
     private Double price;
+    private List<StockMovement> stockMovementList;
+
+    public List<StockMovement> getStockMovementList() {
+        return stockMovementList;
+    }
+
+    public void setStockMovementList(List<StockMovement> stockMovementList) {
+        this.stockMovementList = stockMovementList;
+    }
 
     public Ingredient() {
     }
@@ -77,4 +88,21 @@ public class Ingredient {
                 ", price=" + price +
                 '}';
     }
+
+    /* getStockValueAt method */
+    public StockValue getStockValueAt(Instant time){
+        List<StockMovement> concerned =  stockMovementList.stream().filter(stockMovement -> stockMovement.getCreationDatetime().isBefore(time)
+        || stockMovement.getCreationDatetime().equals(time))
+                .toList();
+        double quantity = 0.0;
+        for (StockMovement sm : concerned) {
+            if(sm.getType() == MovementTypeEnum.IN){
+                quantity += sm.getValue().getQuantity();
+            } else {
+                quantity -= sm.getValue().getQuantity();
+            }
+        }
+        return new StockValue(quantity, concerned.getFirst().getValue().getUnit());
+    };
+
 }

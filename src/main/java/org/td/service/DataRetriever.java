@@ -39,6 +39,63 @@ public class DataRetriever {
         }
     }
 
+    public Ingredient findIngredientById(Integer id) {
+        DBConnection dbConnection = new DBConnection();
+        Connection connection = dbConnection.getConnection();
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                    """
+                            select ingredient.id, ingredient.name, ingredient.price, ingredient.category
+                            from ingredient
+                            where ingredient.id = ?;
+                            """);
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                Ingredient ingredient = new Ingredient();
+                ingredient.setId(resultSet.getInt("id"));
+                ingredient.setName(resultSet.getString("name"));
+                ingredient.setPrice(resultSet.getDouble("price"));
+                ingredient.setCategory(CategoryEnum.valueOf(resultSet.getString("category")));
+                ingredient.setStockMovementList(getStockMovementByIngredientId(id));
+                return ingredient;
+            }
+            dbConnection.closeConnection(connection);
+            throw new RuntimeException("Ingredient not found " + id);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<StockMovement> getStockMovementByIngredientId(int id){
+        String sql = """
+                select id, id_ingredient, quantity,type,unit, creation_datetime
+                from stockmovement
+                where id_ingredient = ?;
+                """;
+        DBConnection dbConnection = new DBConnection();
+        Connection connection = dbConnection.getConnection();
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, id);
+            List<StockMovement> stockMovements = new ArrayList<>();
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                StockMovement stockMovement = new StockMovement();
+                stockMovement.setId(resultSet.getInt("id"));
+                StockValue stockValue = new StockValue();
+                stockValue.setQuantity(resultSet.getDouble("quantity"));
+                stockValue.setUnit(UnitType.valueOf(resultSet.getString("unit")));
+                stockMovement.setValue(stockValue);
+                stockMovement.setType(MovementTypeEnum.valueOf(resultSet.getString("type")));
+                stockMovement.setCreationDatetime(resultSet.getTimestamp("creation_datetime").toInstant());
+                stockMovements.add(stockMovement);
+            }
+            return stockMovements;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Dish saveDish(Dish toSave) {
         String upsertDishSql = """
                     INSERT INTO dish (id, selling_price, name, dish_type)
@@ -126,6 +183,33 @@ public class DataRetriever {
             throw new RuntimeException(e);
         } finally {
             dbConnection.closeConnection(conn);
+        }
+    }
+
+    public Ingredient saveIngredient(Ingredient ingredient) {
+        String baseSql = """
+                insert into stockmovement (id, id_ingredient, quantity, type, unit, creation_datetime)
+                values (?, ?, ?, ?::mouvement_type, ?::unit_type, ?)
+                on conflict (id) do nothing;
+                """;
+        DBConnection dbConnection = new DBConnection();
+        Connection connection = dbConnection.getConnection();
+        try(PreparedStatement ps = connection.prepareStatement(baseSql)) {
+            for (StockMovement mvt : ingredient.getStockMovementList()){
+                ps.setInt(1, mvt.getId());
+                ps.setInt(2, ingredient.getId());
+                ps.setDouble(3, mvt.getValue().getQuantity());
+                ps.setString(4, mvt.getType().name());
+                ps.setString(5, mvt.getValue().getUnit().name());
+                ps.setTimestamp(6, Timestamp.from(mvt.getCreationDatetime()));
+
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            return ingredient;
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
