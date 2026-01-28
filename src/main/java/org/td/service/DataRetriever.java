@@ -2,6 +2,7 @@ package org.td.service;
 
 import org.td.config.DBConnection;
 import org.td.entity.*;
+import org.td.util.UnitConverter;
 
 import java.sql.*;
 import java.time.Instant;
@@ -353,7 +354,7 @@ public class DataRetriever {
         /*check if stock ingredient is sufficient */
         for(DishOrder dishOrder: orderToSave.getDishOrders()){
             for (DishIngredient dishIng: dishOrder.getDish().getDishIngredientList()){
-                double requiredQuantity = dishIng.getQuantity_required() * dishOrder.getQuantity();
+                double requiredQuantity = UnitConverter.convertTo(dishIng.getIngredient().getName(), dishIng.getUnit() , UnitType.KG , dishIng.getQuantity_required()) * dishOrder.getQuantity();
                 Ingredient ingredient = findIngredientById(dishIng.getIngredient().getId());
                 double availableQuantity = ingredient.getStockValueAt(Instant.now()).getQuantity();
 

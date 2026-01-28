@@ -1,6 +1,7 @@
 package org.td.entity;
 
 import org.td.entity.Dish;
+import org.td.util.UnitConverter;
 
 import java.time.Instant;
 import java.util.List;
@@ -96,10 +97,13 @@ public class Ingredient {
                 .toList();
         double quantity = 0.0;
         for (StockMovement sm : concerned) {
+            double quantitySm = sm.getValue().getQuantity();
+            UnitType unitType = sm.getValue().getUnit();
+            double qtyInKg = UnitConverter.convertTo(name, unitType , UnitType.KG , quantitySm);
             if(sm.getType() == MovementTypeEnum.IN){
-                quantity += sm.getValue().getQuantity();
+                quantity += qtyInKg;
             } else {
-                quantity -= sm.getValue().getQuantity();
+                quantity -= qtyInKg;
             }
         }
         return new StockValue(quantity, concerned.getFirst().getValue().getUnit());

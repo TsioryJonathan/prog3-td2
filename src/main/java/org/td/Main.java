@@ -10,6 +10,7 @@ import org.td.entity.Dish;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 
 public class Main {
@@ -146,7 +147,7 @@ public class Main {
 //    Ingredient ing3 = dr.findIngredientById(3);
 //    Ingredient ing4 = dr.findIngredientById(4);
 //    Ingredient ing5 = dr.findIngredientById(5);
-//    Instant t = Instant.parse("2024-01-06T12:00:00Z");
+    Instant t = Instant.parse("2024-01-06T12:00:00Z");
 //        System.out.println(ing1.getStockValueAt(t));
 //        System.out.println(ing2.getStockValueAt(t));
 //        System.out.println(ing3.getStockValueAt(t));
@@ -154,10 +155,21 @@ public class Main {
 //        System.out.println(ing5.getStockValueAt(t));
 
         /* Create an order (trying to trigger an error for insufficient stock */
-        Dish dish1 = dr.findDishById(1);
-        DishOrder dishOrder = new DishOrder(2 , dish1 , 1000);
-        Order order = new Order(1 ,"ORD00001", Instant.now() , List.of(dishOrder));
-        System.out.println(dr.saveOrder(order));
+//        Dish dish1 = dr.findDishById(1);
+//        DishOrder dishOrder = new DishOrder(2 , dish1 , 1000);
+//        Order order = new Order(1 ,"ORD00001", Instant.now() , List.of(dishOrder));
+//        System.out.println(dr.saveOrder(order));
 
+        Ingredient laitue = dr.findIngredientById(1);
+        Ingredient tomate = dr.findIngredientById(2);
+        Ingredient poulet = dr.findIngredientById(3);
+        Ingredient chocolat = dr.findIngredientById(4);
+        Ingredient beurre = dr.findIngredientById(5);
+
+        System.out.println(laitue.getStockValueAt(t).getQuantity());
+        System.out.println(tomate.getStockValueAt(t).getQuantity());
+        System.out.println(poulet.getStockValueAt(t).getQuantity());
+        System.out.println(chocolat.getStockValueAt(t).getQuantity());
+        System.out.println(beurre.getStockValueAt(t).getQuantity());
     }
 }
