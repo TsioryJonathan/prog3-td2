@@ -1,12 +1,15 @@
 package org.td;
 
+import org.td.entity.DishOrder;
 import org.td.entity.Ingredient;
+import org.td.entity.Order;
 import org.td.service.DataRetriever;
 import org.td.entity.Dish;
 
 
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.List;
 
 
 public class Main {
@@ -138,16 +141,23 @@ public class Main {
 //        Dish saladeUpdated = dr.findDishById(dish1.getId());
 //        System.out.println("Nouveau prix : " + saladeUpdated.getPrice());
 //        System.out.println("Gross Margin : " + saladeUpdated.getGrossMargin())
-    Ingredient ing1 = dr.findIngredientById(1);
-    Ingredient ing2 = dr.findIngredientById(2);
-    Ingredient ing3 = dr.findIngredientById(3);
-    Ingredient ing4 = dr.findIngredientById(4);
-    Ingredient ing5 = dr.findIngredientById(5);
-    Instant t = Instant.parse("2024-01-06T12:00:00Z");
-        System.out.println(ing1.getStockValueAt(t));
-        System.out.println(ing2.getStockValueAt(t));
-        System.out.println(ing3.getStockValueAt(t));
-        System.out.println(ing4.getStockValueAt(t));
-        System.out.println(ing5.getStockValueAt(t));
+//    Ingredient ing1 = dr.findIngredientById(1);
+//    Ingredient ing2 = dr.findIngredientById(2);
+//    Ingredient ing3 = dr.findIngredientById(3);
+//    Ingredient ing4 = dr.findIngredientById(4);
+//    Ingredient ing5 = dr.findIngredientById(5);
+//    Instant t = Instant.parse("2024-01-06T12:00:00Z");
+//        System.out.println(ing1.getStockValueAt(t));
+//        System.out.println(ing2.getStockValueAt(t));
+//        System.out.println(ing3.getStockValueAt(t));
+//        System.out.println(ing4.getStockValueAt(t));
+//        System.out.println(ing5.getStockValueAt(t));
+
+        /* Create an order (trying to trigger an error for insufficient stock */
+        Dish dish1 = dr.findDishById(1);
+        DishOrder dishOrder = new DishOrder(2 , dish1 , 1000);
+        Order order = new Order(1 ,"ORD00001", Instant.now() , List.of(dishOrder));
+        System.out.println(dr.saveOrder(order));
+
     }
 }

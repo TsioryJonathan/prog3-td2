@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Objects;
 
 public class StockMovement {
-    private int id;
+    private Integer id;
     private StockValue value;
     private MovementTypeEnum type;
     private Instant creationDatetime;
@@ -12,7 +12,7 @@ public class StockMovement {
     public StockMovement() {
     }
 
-    public StockMovement(int id, StockValue value, MovementTypeEnum type, Instant creationDatetime) {
+    public StockMovement(Integer id, StockValue value, MovementTypeEnum type, Instant creationDatetime) {
         this.id = id;
         this.value = value;
         this.type = type;
@@ -25,11 +25,11 @@ public class StockMovement {
         this.creationDatetime = creationDatetime;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

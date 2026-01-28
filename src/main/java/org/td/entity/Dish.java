@@ -15,6 +15,9 @@ public class Dish {
     }
 
     public void setDishIngredientList(List<DishIngredient> dishIngredientList) {
+        for (DishIngredient dishIngredient : dishIngredientList) {
+            dishIngredient.setDish(this);
+        }
         this.dishIngredientList = dishIngredientList;
     }
 
