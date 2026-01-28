@@ -199,7 +199,11 @@ public class DataRetriever {
         try(PreparedStatement ps = connection.prepareStatement(baseSql)) {
             connection.setAutoCommit(false);
             for (StockMovement mvt : ingredient.getStockMovementList()){
+                if (mvt.getId() != null) {
                 ps.setInt(1, mvt.getId());
+                }else{
+                    ps.setInt(1, getNextSerialValue(connection, "stockmovement", "id"));
+                }
                 ps.setInt(2, ingredient.getId());
                 ps.setDouble(3, mvt.getValue().getQuantity());
                 ps.setString(4, mvt.getType().name());
@@ -376,7 +380,11 @@ public class DataRetriever {
                     throw new RuntimeException(e);
                 }
             }
+            if(orderToSave.getId() != null){
             ps.setInt(1, orderToSave.getId());
+            }else{
+                ps.setInt(1, getNextSerialValue(connection, "Order", "id"));
+            }
             ps.setString(2, orderToSave.getReference());
             ps.setTimestamp(3, Timestamp.from(orderToSave.getCreationDatetime()));
             ps.executeUpdate();
@@ -402,7 +410,13 @@ public class DataRetriever {
           conn.setAutoCommit(false);
           PreparedStatement ps = conn.prepareStatement(dishOrderSql);
           for (DishOrder dishOrder: dishOrders){
+              if(dishOrder.getId() != null){
             ps.setInt(1, dishOrder.getId());
+
+              }
+              else{
+                  ps.setInt(1, getNextSerialValue(conn, "dishorder", "id"));
+              }
             ps.setInt(2 , orderId);
             ps.setInt(3 , dishOrder.getDish().getId());
             ps.setInt(4, dishOrder.getQuantity());
