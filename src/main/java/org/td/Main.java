@@ -1,5 +1,6 @@
 package org.td;
 
+import org.td.config.DBConnection;
 import org.td.entity.DishOrder;
 import org.td.entity.Ingredient;
 import org.td.entity.Order;
@@ -19,6 +20,7 @@ public class Main {
 
         /* comment out every test that would throw error before running all test to show all normal result */
         DataRetriever dr = new DataRetriever();
+
 
 //        System.out.println("==== Test a) findDishById(1) ====");
 //        Dish dish1 = dr.findDishById(1);

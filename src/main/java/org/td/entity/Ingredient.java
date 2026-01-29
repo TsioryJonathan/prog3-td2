@@ -106,7 +106,7 @@ public class Ingredient {
                 quantity -= qtyInKg;
             }
         }
-        return new StockValue(quantity, concerned.getFirst().getValue().getUnit());
+        return new StockValue(quantity, UnitType.KG);
     };
 
 }

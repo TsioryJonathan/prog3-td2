@@ -32,16 +32,18 @@ public class DataRetriever {
                         ? null : resultSet.getDouble("dish_price"));
                 List<DishIngredient> dishIngredients = findDishIngredientById(resultSet.getInt("dish_id"));
                 dish.setDishIngredientList(dishIngredients);
-
+                dbConnection.closeConnection(connection);
                 return dish;
             }
-            dbConnection.closeConnection(connection);
             throw new RuntimeException("Dish not found " + id);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            dbConnection.closeConnection(connection);
         }
     }
 
+    /* for main */
     public Ingredient findIngredientById(Integer id) {
         DBConnection dbConnection = new DBConnection();
         Connection connection = dbConnection.getConnection();
@@ -61,14 +63,47 @@ public class DataRetriever {
                 ingredient.setPrice(resultSet.getDouble("price"));
                 ingredient.setCategory(CategoryEnum.valueOf(resultSet.getString("category")));
                 ingredient.setStockMovementList(getStockMovementByIngredientId(connection,id));
+            dbConnection.closeConnection(connection);
                 return ingredient;
             }
-            dbConnection.closeConnection(connection);
             throw new RuntimeException("Ingredient not found " + id);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            dbConnection.closeConnection(connection);
         }
     }
+
+        /* optimized version */
+        private Ingredient findIngredientById(Connection conn, Integer id) {
+            try {
+                PreparedStatement ps = conn.prepareStatement("""
+            select id, name, price, category
+            from ingredient
+            where id = ?
+        """);
+                ps.setInt(1, id);
+                ResultSet rs = ps.executeQuery();
+
+                if (!rs.next()) {
+                    throw new RuntimeException("Ingredient not found " + id);
+                }
+
+                Ingredient ingredient = new Ingredient();
+                ingredient.setId(rs.getInt("id"));
+                ingredient.setName(rs.getString("name"));
+                ingredient.setPrice(rs.getDouble("price"));
+                ingredient.setCategory(CategoryEnum.valueOf(rs.getString("category")));
+
+                ingredient.setStockMovementList(
+                        getStockMovementByIngredientId(conn, id)
+                );
+
+                return ingredient;
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
     public List<StockMovement> getStockMovementByIngredientId(Connection conn , int id){
         String sql = """
@@ -141,6 +176,7 @@ public class DataRetriever {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     public List<Ingredient> createIngredients(List<Ingredient> newIngredients) {
@@ -220,6 +256,9 @@ public class DataRetriever {
         }
         catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+        finally {
+            dbConnection.closeConnection(connection);
         }
     }
 
@@ -307,6 +346,9 @@ public class DataRetriever {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        finally {
+            dbConnection.closeConnection(connection);
+        }
     }
 
     private List<DishIngredient> findDishIngredientById(Integer idDish) {
@@ -320,7 +362,6 @@ public class DataRetriever {
                 where id_dish = ?
                 """;
         try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            connection.setAutoCommit(false);
             preparedStatement.setInt(1, idDish);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -328,7 +369,6 @@ public class DataRetriever {
                 Ingredient ing = new Ingredient();
                         dishIng.setId(resultSet.getInt(1));
 //                        dishIng.setDish(findDishById(resultSet.getInt("id_dish")));
-                        dishIng.setIngredient(findIngredientById(resultSet.getInt("id_ingredient")));
                         dishIng.setQuantity_required(resultSet.getDouble("quantity_required"));
                         dishIng.setUnit(UnitType.valueOf(resultSet.getString("unit")));
 
@@ -340,60 +380,66 @@ public class DataRetriever {
                         dishIngredients.add(dishIng);
 
             }
-            connection.commit();
             dbConnection.closeConnection(connection);
             return dishIngredients;
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        finally {
+            dbConnection.closeConnection(connection);
+        }
     }
 
     /* Order operations */
-    public Order saveOrder(Order orderToSave){
+    public Order saveOrder(Order orderToSave) throws SQLException {
+        DBConnection dbConnection = new DBConnection();
+        Connection connection = dbConnection.getConnection();
         /*check if stock ingredient is sufficient */
         for(DishOrder dishOrder: orderToSave.getDishOrders()){
             for (DishIngredient dishIng: dishOrder.getDish().getDishIngredientList()){
                 double requiredQuantity = UnitConverter.convertTo(dishIng.getIngredient().getName(), dishIng.getUnit() , UnitType.KG , dishIng.getQuantity_required()) * dishOrder.getQuantity();
-                Ingredient ingredient = findIngredientById(dishIng.getIngredient().getId());
+                Ingredient ingredient = findIngredientById(connection,dishIng.getIngredient().getId());
                 double availableQuantity = ingredient.getStockValueAt(Instant.now()).getQuantity();
-
                 if(availableQuantity < requiredQuantity){
                     throw new RuntimeException("Insufficient stock for ingredient: " + ingredient.getName());
             }
             }
         }
-
         String sql = """
                 insert into "Order" (id, reference, creation_datetime)
                 values (?, ?, ?)
                 """;
-        DBConnection dbConnection = new DBConnection();
-        Connection connection = dbConnection.getConnection();
+
         try(PreparedStatement ps = connection.prepareStatement(sql)) {
             connection.setAutoCommit(false);
 
             /* Insert dishorder */
-            for(DishOrder dishOrder: orderToSave.getDishOrders()){
-                try{
-                    saveDishOrder(connection, orderToSave.getDishOrders(), orderToSave.getId());
-                } catch (RuntimeException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+
+            int orderId;
             if(orderToSave.getId() != null){
-            ps.setInt(1, orderToSave.getId());
-            }else{
-                ps.setInt(1, getNextSerialValue(connection, "Order", "id"));
+                orderId = orderToSave.getId();
+            } else {
+                orderId = getNextSerialValue(connection, "Order", "id");
             }
+            ps.setInt(1, orderId);
+
             ps.setString(2, orderToSave.getReference());
             ps.setTimestamp(3, Timestamp.from(orderToSave.getCreationDatetime()));
             ps.executeUpdate();
+            try{
+                saveDishOrder(connection, orderToSave.getDishOrders(), orderId);
+            } catch (RuntimeException e) {
+                throw new RuntimeException(e);
+            }
             connection.commit();
             dbConnection.closeConnection(connection);
             return orderToSave;
         } catch (SQLException e) {
+            connection.rollback();
             throw new RuntimeException(e);
+        }finally {
+            dbConnection.closeConnection(connection);
         }
 
     }
@@ -408,7 +454,6 @@ public class DataRetriever {
                 returning id;
                 """;
       try{
-          conn.setAutoCommit(false);
           PreparedStatement ps = conn.prepareStatement(dishOrderSql);
           for (DishOrder dishOrder: dishOrders){
               if(dishOrder.getId() != null){
@@ -424,9 +469,7 @@ public class DataRetriever {
             ps.addBatch();
           }
           ps.executeBatch();
-          conn.commit();
       } catch (SQLException e) {
-          conn.rollback();
           throw new RuntimeException(e);
       }
     };
@@ -458,6 +501,9 @@ public class DataRetriever {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        finally {
+            dbConnection.closeConnection(connection);
+        }
     }
 
     private Order findOrderByReference(String reference){
@@ -486,6 +532,9 @@ public class DataRetriever {
             throw new RuntimeException("Order not found with reference: " + reference);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+        finally {
+            dbConnection.closeConnection(connection);
         }
     }
 
