@@ -1,11 +1,8 @@
 package org.td;
 
 import org.td.config.DBConnection;
-import org.td.entity.DishOrder;
-import org.td.entity.Ingredient;
-import org.td.entity.Order;
+import org.td.entity.*;
 import org.td.service.DataRetriever;
-import org.td.entity.Dish;
 
 
 import java.sql.SQLException;
@@ -162,16 +159,49 @@ public class Main {
 //        Order order = new Order(1 ,"ORD00001", Instant.now() , List.of(dishOrder));
 //        System.out.println(dr.saveOrder(order));
 
-        Ingredient laitue = dr.findIngredientById(1);
-        Ingredient tomate = dr.findIngredientById(2);
-        Ingredient poulet = dr.findIngredientById(3);
-        Ingredient chocolat = dr.findIngredientById(4);
-        Ingredient beurre = dr.findIngredientById(5);
+//        Ingredient laitue = dr.findIngredientById(1);
+//        Ingredient tomate = dr.findIngredientById(2);
+//        Ingredient poulet = dr.findIngredientById(3);
+//        Ingredient chocolat = dr.findIngredientById(4);
+//        Ingredient beurre = dr.findIngredientById(5);
+//
+//        System.out.println(laitue.getStockValueAt(t).getQuantity());
+//        System.out.println(tomate.getStockValueAt(t).getQuantity());
+//        System.out.println(poulet.getStockValueAt(t).getQuantity());
+//        System.out.println(chocolat.getStockValueAt(t).getQuantity());
+//        System.out.println(beurre.getStockValueAt(t).getQuantity());
 
-        System.out.println(laitue.getStockValueAt(t).getQuantity());
-        System.out.println(tomate.getStockValueAt(t).getQuantity());
-        System.out.println(poulet.getStockValueAt(t).getQuantity());
-        System.out.println(chocolat.getStockValueAt(t).getQuantity());
-        System.out.println(beurre.getStockValueAt(t).getQuantity());
+
+        /* Create a valid order */
+        DishOrder dishOrder = new DishOrder();
+        dishOrder.setDish(dr.findDishById(1));
+        dishOrder.setId(5);
+        dishOrder.setQuantity(3);
+
+
+        Order order = new Order();
+        order.setId(66);
+
+        Table table = new Table();
+        table.setId(1);
+        table.setNumber(1);
+        table.setOrders(List.of(order));
+
+        TableOrder tableOrder = new TableOrder();
+        tableOrder.setId(1);
+        tableOrder.setTable(table);
+        tableOrder.setArrivalDatetime(Instant.parse(t.toString()));
+        tableOrder.setDepartureDatetime(Instant.parse("2024-01-06T14:00:00Z"));
+
+        order.setTableOrder(tableOrder);
+        order.setReference("ORD2005");
+        order.setCreationDatetime(Instant.now());
+        order.setDishOrders(List.of(dishOrder));
+
+        /* save order to database */
+        Order result = dr.saveOrder(order);
+
+
+
     }
 }
