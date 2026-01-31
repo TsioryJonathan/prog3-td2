@@ -5,7 +5,7 @@ import org.td.entity.*;
 import org.td.util.UnitConverter;
 
 import java.sql.*;
-import java.time.Instant;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -443,8 +443,22 @@ public class DataRetriever {
                 ps.setTimestamp(3, Timestamp.from(orderToSave.getCreationDatetime()));
                 if (tableOrder != null) {
                     ps.setInt(4, tableOrder.getTable().getId());
-                    ps.setTimestamp(5, Timestamp.from(tableOrder.getArrivalDatetime()));
-                    ps.setTimestamp(6, Timestamp.from(tableOrder.getDepartureDatetime()));
+
+                    LocalDateTime arrivalLocal = tableOrder.getArrivalDatetime()
+                            .atOffset(ZoneOffset.UTC)
+                            .minusHours(3)
+                            .toLocalDateTime();
+
+                    LocalDateTime departureLocal = tableOrder.getDepartureDatetime()
+                            .atOffset(ZoneOffset.UTC)
+                            .minusHours(3)
+                            .toLocalDateTime();
+
+                    ps.setObject(5, arrivalLocal);
+                    ps.setObject(6, departureLocal);
+
+
+
                 } else {
                     ps.setNull(4, Types.INTEGER);
                     ps.setNull(5, Types.TIMESTAMP);
@@ -470,11 +484,18 @@ public class DataRetriever {
         where id_table = ?
           and installation_time < ?
           and departure_time > ?
-        """;
+    """;
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, tableId);
-            ps.setTimestamp(2, Timestamp.from(departure));
-            ps.setTimestamp(3, Timestamp.from(arrival));
+
+            // Correction manuelle de 3 heures pour UTC+3
+            LocalDateTime arrivalLocal = arrival.atOffset(ZoneOffset.UTC).minusHours(3).toLocalDateTime();
+            LocalDateTime departureLocal = departure.atOffset(ZoneOffset.UTC).minusHours(3).toLocalDateTime();
+
+            ps.setObject(2, departureLocal); // installation_time < ?
+            ps.setObject(3, arrivalLocal);   // departure_time > ?
+
             try (ResultSet rs = ps.executeQuery()) {
                 rs.next();
                 return rs.getInt(1) == 0;
@@ -495,8 +516,11 @@ public class DataRetriever {
 
         List<Table> availableTables = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setTimestamp(1, Timestamp.from(departure));
-            ps.setTimestamp(2, Timestamp.from(arrival));
+            LocalDateTime arrivalLocal = arrival.atOffset(ZoneOffset.UTC).minusHours(3).toLocalDateTime();
+            LocalDateTime departureLocal = departure.atOffset(ZoneOffset.UTC).minusHours(3).toLocalDateTime();
+
+            ps.setObject(1, departureLocal);
+            ps.setObject(2, arrivalLocal);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Table table = new Table();

@@ -6,7 +6,9 @@ import org.td.service.DataRetriever;
 
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 
@@ -175,23 +177,22 @@ public class Main {
         /* Create a valid order */
         DishOrder dishOrder = new DishOrder();
         dishOrder.setDish(dr.findDishById(1));
-        dishOrder.setId(5);
+        dishOrder.setId(92);
         dishOrder.setQuantity(3);
 
-
         Order order = new Order();
-        order.setId(66);
+        order.setId(110);
 
         Table table = new Table();
-        table.setId(1);
-        table.setNumber(1);
+        table.setId(2);
+        table.setNumber(2);
         table.setOrders(List.of(order));
 
         TableOrder tableOrder = new TableOrder();
-        tableOrder.setId(1);
+        tableOrder.setId(10);
         tableOrder.setTable(table);
-        tableOrder.setArrivalDatetime(Instant.parse(t.toString()));
-        tableOrder.setDepartureDatetime(Instant.parse("2024-01-06T14:00:00Z"));
+        tableOrder.setArrivalDatetime(Instant.now());
+        tableOrder.setDepartureDatetime(Instant.now().plus(Duration.of(1, ChronoUnit.HOURS)));
 
         order.setTableOrder(tableOrder);
         order.setReference("ORD2005");
